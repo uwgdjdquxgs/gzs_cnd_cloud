@@ -1,41 +1,156 @@
-<mat-toolbar color="primary" class="app-toolbar">
-  <span>Cloud Native Media Store</span>
-  <span class="spacer"></span>
-  <button mat-raised-button color="accent" (click)="openAddDialog()">
-    <mat-icon>add</mat-icon> 发布内容
-  </button>
-</mat-toolbar>
+<div class="app-background"></div>
 
-<div class="container">
-  <mat-progress-bar mode="indeterminate" *ngIf="loading"></mat-progress-bar>
+<div class="layout-wrapper">
+  
+  <nav class="glass-nav">
+    <div class="nav-logo"><mat-icon>cloud_queue</mat-icon></div>
+    <div class="nav-group">
+      <button class="icon-btn" [class.active]="viewMode === 'view'" (click)="posts.length > 0 ? selectPost(posts[0]) : null" matTooltip="媒体库">
+        <mat-icon>dashboard</mat-icon>
+      </button>
+      <button class="icon-btn" [class.active]="viewMode === 'add'" (click)="goAdd()" matTooltip="发布">
+        <mat-icon>add_circle</mat-icon>
+      </button>
+    </div>
+  </nav>
 
-  <div class="grid-layout">
-    <mat-card *ngFor="let post of posts" class="post-card" (click)="openDetail(post)">
-      <img mat-card-image [src]="post.mediaUrl" alt="Media" *ngIf="post.mediaType !== 'video'">
-      <video mat-card-image [src]="post.mediaUrl" *ngIf="post.mediaType === 'video'"></video>
+  <aside class="island-list">
+    <div class="island-header">
+      <h2>Library</h2>
+      <span class="count-badge">{{posts.length}} items</span>
+    </div>
+    
+    <div class="list-scroll-area">
+      <mat-progress-bar *ngIf="loading" mode="query" style="border-radius: 4px; overflow: hidden; height: 2px;"></mat-progress-bar>
       
-      <mat-card-content>
-        <h3 class="title">{{post.header}}</h3>
-        <p class="text">{{post.text}}</p>
-      </mat-card-content>
+      <div class="media-item" 
+           *ngFor="let post of posts" 
+           [class.active]="selectedPost?.id === post.id"
+           (click)="selectPost(post)">
+        
+        <div class="media-thumb">
+          <img [src]="post.mediaUrl" *ngIf="post.mediaType !== 'video'" loading="lazy">
+          <video [src]="post.mediaUrl" *ngIf="post.mediaType === 'video'"></video>
+        </div>
+        
+        <div class="media-info">
+          <div class="m-title">{{post.header || 'Untitled'}}</div>
+          <div class="m-date">{{post.createdAt | date:'MM/dd'}} · {{post.likes || 0}} likes</div>
+        </div>
+      </div>
+    </div>
+  </aside>
 
-      <mat-card-actions (click)="$event.stopPropagation()">
-        <button mat-button color="primary" (click)="onLike(post)">
-          <mat-icon>thumb_up</mat-icon> {{post.likes || 0}}
-        </button>
-        <span class="spacer"></span>
-        <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
-          <mat-icon>more_vert</mat-icon>
-        </button>
-        <mat-menu #menu="matMenu">
-            <button mat-menu-item (click)="openEdit(post)">编辑</button>
-            <button mat-menu-item (click)="onDelete(post)">删除</button>
-        </mat-menu>
-      </mat-card-actions>
-    </mat-card>
-  </div>
+  <main class="island-stage">
+    
+    <!-- 内容区域 -->
+    <div class="stage-content animate-entry" 
+         [class.key-change]="selectedPost?.id" 
+         *ngFor="let trigger of [selectedPost?.id || viewMode]">
 
-  <div *ngIf="!loading && posts.length === 0" style="text-align: center; margin-top: 50px; color: #666;">
-      <p>暂无内容，快点击右上角发布吧！</p>
-  </div>
+      <!-- View Mode -->
+      <ng-container *ngIf="viewMode === 'view' && selectedPost">
+        <div class="cinematic-media-area">
+          <div class="ambient-glow" [style.backgroundImage]="'url(' + selectedPost.mediaUrl + ')'"></div>
+          <div class="media-wrapper">
+            <img [src]="selectedPost.mediaUrl" *ngIf="selectedPost.mediaType !== 'video'">
+            <video [src]="selectedPost.mediaUrl" *ngIf="selectedPost.mediaType === 'video'" controls autoplay></video>
+          </div>
+        </div>
+
+        <div class="content-body">
+          <h1>{{selectedPost.header}}</h1>
+          <p class="description">{{selectedPost.text}}</p>
+        </div>
+      </ng-container>
+
+      <!-- Form Mode -->
+      <ng-container *ngIf="viewMode === 'add' || viewMode === 'edit'">
+        <div class="content-body">
+          <h1>{{viewMode === 'add' ? 'Create New' : 'Edit Post'}}</h1>
+          
+          <!-- 复用以前的表单结构，这里省略细节直接用 -->
+          <div style="margin-top: 40px; display: flex; flex-direction: column; gap: 20px;">
+             <div style="height: 200px; background: #f5f5f7; border-radius: 20px; border: 2px dashed #ddd; display: flex; align-items: center; justify-content: center; cursor: pointer;" (click)="fileInput.click()">
+                 <input #fileInput type="file" (change)="onFileSelected($event)" hidden>
+                 <span *ngIf="!previewUrl" style="color:#999">点击上传媒体</span>
+                 <img *ngIf="previewUrl" [src]="previewUrl" style="height: 100%; object-fit: contain">
+             </div>
+             <input style="padding: 15px; border-radius: 12px; border: 1px solid #ddd; font-size: 1.1rem;" placeholder="标题" [(ngModel)]="formData.header">
+             <textarea style="padding: 15px; border-radius: 12px; border: 1px solid #ddd; min-height: 100px;" placeholder="正文" [(ngModel)]="formData.text"></textarea>
+             <button style="padding: 15px; background: #005bea; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer;" (click)="save()">{{uploading ? '处理中...' : '保存'}}</button>
+          </div>
+        </div>
+      </ng-container>
+
+    </div>
+
+    <!-- 悬浮坞 -->
+    <div class="glass-dock" *ngIf="viewMode === 'view'">
+      <div class="dock-item" (click)="doLike()" matTooltip="Like">
+        <mat-icon [style.color]="(selectedPost?.likes || 0) > 0 ? '#ff3b30' : ''">favorite</mat-icon>
+        <span class="dock-badge" *ngIf="(selectedPost?.likes || 0) > 0">{{selectedPost?.likes}}</span>
+      </div>
+      <div class="dock-item" (click)="toggleComments()" matTooltip="Comments">
+        <mat-icon [style.color]="showCommentPanel ? '#005bea' : ''">chat_bubble</mat-icon>
+        <span class="dock-badge" style="background:#005bea" *ngIf="commentCount > 0">{{commentCount}}</span>
+      </div>
+      <div class="dock-item" (click)="goEdit()"><mat-icon>edit</mat-icon></div>
+      <div class="dock-item" (click)="doDelete()"><mat-icon>delete</mat-icon></div>
+    </div>
+
+    <!-- 评论抽屉 -->
+    <div class="comment-drawer" [class.is-open]="showCommentPanel">
+      <div class="drawer-header">
+        <h3>Comments ({{commentCount}})</h3>
+        <button (click)="showCommentPanel = false" style="background:none; border:none; cursor:pointer;"><mat-icon>close</mat-icon></button>
+      </div>
+
+      <div class="drawer-body">
+        <div *ngIf="commentCount === 0" style="text-align:center; padding-top: 100px; color: #999;">
+          <mat-icon style="font-size:40px; width:40px; height:40px; margin-bottom:10px;">chat_bubble_outline</mat-icon>
+          <p>快来发表第一条评论</p>
+        </div>
+
+        <div class="chat-bubble-row" *ngFor="let c of selectedPost?.comments">
+          <div class="avatar">{{c.commentName.charAt(0)}}</div>
+          <div class="bubble-content">
+            <div class="bubble-meta">
+              <span class="name">{{c.commentName}}</span>
+              <span class="time">{{c.commentTime | date:'HH:mm'}}</span>
+            </div>
+            <div class="bubble-text">{{c.commentText}}</div>
+          </div>
+          <button class="bubble-del-btn" (click)="delComment(c.commentId)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+        <!-- 底部垫高，防止内容被悬浮输入框遮挡 -->
+        <div style="height: 80px;"></div>
+      </div>
+
+      <!-- 灵动岛输入框 (Floating Input) -->
+      <div class="floating-input-area" 
+           [class.expanded]="isInputExpanded"
+           (click)="!isInputExpanded && toggleInput($event)">
+           
+        <!-- 默认状态：加号图标 -->
+        <div class="input-icon">
+          <mat-icon>add</mat-icon>
+        </div>
+
+        <!-- 展开状态：表单 -->
+        <div class="input-form" (click)="$event.stopPropagation()">
+          <input type="text" placeholder="你的昵称" [(ngModel)]="newCommentName">
+          <input type="text" placeholder="说点什么..." [(ngModel)]="newCommentText" (keyup.enter)="sendComment()">
+          <div class="send-action">
+            <button (click)="isInputExpanded = false" style="background:transparent; color:white; margin-right:10px;">取消</button>
+            <button (click)="sendComment()">发送</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
 </div>
