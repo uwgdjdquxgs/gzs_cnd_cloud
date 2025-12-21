@@ -1,0 +1,41 @@
+name: Deploy Backend to Azure Functions
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**' # 只有修改 backend 文件夹下的内容才触发
+
+env:
+  AZURE_FUNCTIONAPP_NAME: '你的函数应用名字'  # 必改：例如 functionapp0002-ewe8...
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: 'backend'     # 对应你的代码文件夹名
+  NODE_VERSION: '20.x'                          # 对应你 Azure 上的 Node 版本
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@v3
+
+    - name: Setup Node ${{ env.NODE_VERSION }} Environment
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: 'Resolve Project Dependencies Using Npm'
+      shell: bash
+      run: |
+        pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+        npm install
+        npm run build --if-present
+        popd
+
+    - name: 'Run Azure Functions Action'
+      uses: Azure/functions-action@v1
+      id: fa
+      with:
+        app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+        package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+        publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
