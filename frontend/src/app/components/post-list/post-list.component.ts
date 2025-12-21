@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatIconModule } from '@angular/material/icon'; // 引入 Icon 模块
+import { MatIconModule } from '@angular/material/icon';
 import { Post } from '../../models/post.model';
 
 @Component({
@@ -15,6 +15,7 @@ import { Post } from '../../models/post.model';
         <span class="count-badge">{{posts.length}} items</span>
       </div>
       
+      <!-- 滚动区域 -->
       <div class="list-scroll-area">
         <mat-progress-bar *ngIf="loading" mode="query" style="border-radius: 4px; height: 2px;"></mat-progress-bar>
         
@@ -24,15 +25,10 @@ import { Post } from '../../models/post.model';
              (click)="select.emit(post)">
           
           <div class="media-thumb">
-            <!-- 图片直接显示 -->
             <img [src]="post.mediaUrl" *ngIf="post.mediaType !== 'video'" loading="lazy">
-            
-            <!-- 视频：显示 video 标签作为缩略图，并叠加播放按钮 -->
             <ng-container *ngIf="post.mediaType === 'video'">
               <video [src]="post.mediaUrl" preload="metadata" muted></video>
-              <div class="play-overlay">
-                <mat-icon>play_arrow</mat-icon>
-              </div>
+              <div class="play-overlay"><mat-icon>play_arrow</mat-icon></div>
             </ng-container>
           </div>
           
@@ -41,20 +37,47 @@ import { Post } from '../../models/post.model';
             <div class="m-date">{{post.createdAt | date:'MM/dd HH:mm'}}</div>
           </div>
         </div>
+        
+        <!-- 底部占位，防止最后一个元素贴底 -->
+        <div style="height: 20px;"></div>
       </div>
     </aside>
   `,
   styles: [`
-    .island-list {
-      width: 340px; border-radius: var(--radius-lg);
-      display: flex; flex-direction: column; overflow: hidden;
+    /* 1. 宿主样式：关键修复 */
+    :host {
+      display: block; /* 或者 flex */
+      height: 100%;   /* 强行撑满父容器高度，这就解决了"底部持平"的问题 */
+      min-width: 340px; /* 固定宽度，防止被压缩 */
     }
+
+    /* 2. 卡片容器 */
+    .island-list {
+      width: 100%;
+      height: 100%; /* 撑满宿主 */
+      border-radius: var(--radius-lg);
+      display: flex; 
+      flex-direction: column; 
+      overflow: hidden; /* 裁剪圆角 */
+    }
+
     .island-header {
-      padding: 28px; display: flex; justify-content: space-between; align-items: baseline;
+      padding: 28px; 
+      display: flex; justify-content: space-between; align-items: baseline;
+      flex-shrink: 0; /* 防止头部被压缩 */
       h2 { margin: 0; font-size: 1.5rem; font-weight: 800; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
       .count-badge { font-weight: 600; font-size: 0.9rem; color: #aaa; }
     }
-    .list-scroll-area { flex: 1; overflow-y: auto; padding: 0 16px 20px; }
+
+    /* 3. 滚动区域 */
+    .list-scroll-area { 
+      flex: 1; /* 占据剩余所有空间 */
+      overflow-y: auto; /* 开启垂直滚动 */
+      padding: 0 16px; 
+      
+      /* 隐藏滚动条但保留功能 */
+      &::-webkit-scrollbar { width: 0; }
+    }
     
     .media-item {
       display: flex; padding: 12px; border-radius: 20px; margin-bottom: 12px;
@@ -68,17 +91,13 @@ import { Post } from '../../models/post.model';
       
       .media-thumb {
         width: 56px; height: 56px; border-radius: 14px; overflow: hidden; margin-right: 16px; 
-        position: relative; background: #000; flex-shrink: 0; /* 黑色背景适合视频 */
+        position: relative; background: #000; flex-shrink: 0;
         box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
         
         img, video { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; display: block; }
-
-        /* 视频播放遮罩 */
         .play-overlay {
-          position: absolute; inset: 0;
-          background: rgba(0,0,0,0.3); /* 半透明黑 */
-          display: flex; justify-content: center; align-items: center;
-          color: white;
+          position: absolute; inset: 0; background: rgba(0,0,0,0.3);
+          display: flex; justify-content: center; align-items: center; color: white;
           mat-icon { font-size: 24px; width: 24px; height: 24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
         }
       }
