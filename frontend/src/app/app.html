@@ -43,16 +43,23 @@
     </div>
 
     <!-- 悬浮操作坞 -->
-    <app-action-dock 
-      *ngIf="viewMode === 'view' && selectedPost"
-      [likes]="selectedPost.likes || 0"
-      [commentCount]="selectedPost.comments?.length || 0"
-      [showComments]="showComments"
-      (like)="onLike()"
-      (toggleComments)="showComments = !showComments"
-      (edit)="onGoEdit()"
-      (delete)="onDeletePost()">
-    </app-action-dock>
+    <!-- 1. 外层 ng-container 处理显示条件 (*ngIf) -->
+    <ng-container *ngIf="viewMode === 'view' && selectedPost">
+      
+      <!-- 2. 内层组件使用 *ngFor 绑定 ID -->
+      <!-- 当 selectedPost.id 变化时，Angular 会销毁旧组件，创建新组件，从而重新触发 CSS 入场动画 -->
+      <app-action-dock 
+        *ngFor="let trigger of [selectedPost.id]"
+        [likes]="selectedPost.likes || 0"
+        [commentCount]="selectedPost.comments?.length || 0"
+        [showComments]="showComments"
+        (like)="onLike()"
+        (toggleComments)="showComments = !showComments"
+        (edit)="onGoEdit()"
+        (delete)="onDeletePost()">
+      </app-action-dock>
+      
+    </ng-container>
 
     <!-- 评论抽屉 -->
     <!-- 必须包含 [isSubmitting] 和 [deletingId] 这两个绑定 -->
