@@ -13,5 +13,5 @@ export interface Post {
   mediaType: 'image' | 'video';
   createdAt: string;
   likes: number;
-  comments: Comment[];
+  comments?: Comment[]; // <--- 修改处：这里加一个问号
 }

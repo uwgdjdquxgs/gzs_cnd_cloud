@@ -1,109 +1,111 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ApiService } from './services/api.service';
 import { Post, Comment } from './models/post.model';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+
+// 引入子组件
+import { SidebarComponent } from './components/sidebar/sidebar.component';
+import { PostListComponent } from './components/post-list/post-list.component';
+import { PostDetailComponent } from './components/post-detail/post-detail.component';
+import { PostFormComponent } from './components/post-form/post-form.component';
+import { ActionDockComponent } from './components/action-dock/action-dock.component';
+import { CommentDrawerComponent } from './components/comment-drawer/comment-drawer.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [
-    CommonModule, FormsModule,
-    MatIconModule, MatButtonModule, MatTooltipModule,
-    MatProgressBarModule, MatSnackBarModule
+    CommonModule, MatSnackBarModule,
+    SidebarComponent, PostListComponent, PostDetailComponent, 
+    PostFormComponent, ActionDockComponent, CommentDrawerComponent
   ],
   templateUrl: './app.html',
-  styleUrl: './app.scss'
+  styleUrls: ['./app.scss']
 })
 export class AppComponent implements OnInit {
-  // ... 其他变量保持不变 ...
+  // 数据与状态
   posts: Post[] = [];
   loading = false;
   viewMode: 'view' | 'add' | 'edit' = 'add'; 
-  showCommentPanel = false;
+  showComments = false;
   selectedPost: Post | null = null;
   
-  // 新增：控制输入框展开状态
-  isInputExpanded = false; 
-
-  formData: Partial<Post> = { header: '', text: '', mediaType: 'image' };
+  // 表单相关
+  formData: Partial<Post> = {};
   previewUrl: string | null = null;
   uploading = false;
-  newCommentText = '';
-  newCommentName = '';
+
+  // 🌟 新增：评论 Loading 状态
+  isCommentSubmitting = false;
+  commentDeletingId: string | null = null;
 
   constructor(private api: ApiService, private snackBar: MatSnackBar) {}
 
   ngOnInit() { this.loadPosts(); }
 
-  // ... loadPosts, selectPost, goAdd, goEdit 等保持不变 ...
-  
-  loadPosts() {
+  // 3. 修改 loadPosts，支持跳转目标
+  loadPosts(selectFirst = false, selectId: string | null = null) {
     this.loading = true;
     this.api.getPosts().subscribe({
       next: (data) => {
         this.posts = data;
         this.loading = false;
-        if (this.posts.length > 0 && !this.selectedPost) {
-          this.selectPost(this.posts[0]);
-        } else if (this.posts.length === 0) {
-          this.goAdd();
+
+        if (this.posts.length > 0) {
+          if (selectFirst) {
+            // 场景：发布后，选第一条
+            this.onSelectPost(this.posts[0]);
+          } else if (selectId) {
+            // 场景：修改后，选回刚才那条
+            const target = this.posts.find(p => p.id === selectId);
+            if (target) this.onSelectPost(target);
+            else this.onSelectPost(this.posts[0]); // 找不到就选第一条兜底
+          } else if (!this.selectedPost) {
+            // 场景：初始化
+            this.onSelectPost(this.posts[0]);
+          }
+        } else {
+          this.onNavigate('add');
         }
       },
-      error: () => { this.loading = false; this.showMsg('加载失败'); }
+      error: () => { 
+        this.loading = false; 
+        this.showMsg('加载失败'); 
+      }
     });
   }
 
-  selectPost(post: Post) {
+  onSelectPost(post: Post) {
     if (this.selectedPost?.id === post.id && this.viewMode === 'view') return;
     this.selectedPost = post;
     this.viewMode = 'view';
-    this.showCommentPanel = false;
-    this.isInputExpanded = false; // 切换帖子时重置输入框
+    this.showComments = false;
     this.api.getPost(post.id).subscribe(fullData => {
       if(this.selectedPost?.id === fullData.id) this.selectedPost = fullData;
     });
   }
 
-  goAdd() {
-    this.selectedPost = null;
-    this.formData = { header: '', text: '', mediaType: 'image' };
-    this.previewUrl = null;
-    this.viewMode = 'add';
-    this.showCommentPanel = false;
+  onNavigate(mode: 'view' | 'add') {
+    if (mode === 'add') {
+      this.selectedPost = null;
+      this.formData = { header: '', text: '', mediaType: 'image' };
+      this.previewUrl = null;
+      this.viewMode = 'add';
+    } else {
+      if (this.posts.length > 0) this.onSelectPost(this.posts[0]);
+    }
+    this.showComments = false;
   }
 
-  goEdit() {
+  onGoEdit() {
     if (!this.selectedPost) return;
     this.formData = { ...this.selectedPost };
     this.previewUrl = this.selectedPost.mediaUrl;
     this.viewMode = 'edit';
-    this.showCommentPanel = false;
+    this.showComments = false;
   }
 
-  toggleComments() { 
-    this.showCommentPanel = !this.showCommentPanel; 
-    if(!this.showCommentPanel) this.isInputExpanded = false;
-  }
-  
-  // 新增：切换输入框
-  toggleInput(event: Event) {
-    event.stopPropagation(); // 防止冒泡
-    this.isInputExpanded = !this.isInputExpanded;
-  }
-
-  // 点击外部关闭输入框 (可选优化，目前通过按钮关闭)
-  closeInput() {
-    this.isInputExpanded = false;
-  }
-
-  // ... onFileSelected, save, afterSave, doLike, doDelete 保持不变 ...
-  
   onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
@@ -119,22 +121,46 @@ export class AppComponent implements OnInit {
     }
   }
 
-  async save() {
+  // 2. 保存/修改 跳转逻辑
+  async onSavePost() {
     if (!this.formData.header || !this.formData.text) return;
     this.uploading = true;
+    
     try {
+      // 上传文件逻辑 (保持不变)
       const file = (this.formData as any).file;
       if (file) {
-        const url = await this.uploadFilePromise(file);
+        const url = await new Promise<string>(resolve => 
+          this.api.uploadFile(file).subscribe(u => resolve(u))
+        );
         this.formData.mediaUrl = url;
       }
+
+      // 保存逻辑
       if (this.viewMode === 'add') {
-        this.api.createPost(this.formData).subscribe(() => this.afterSave('发布成功'));
+        // === 发布场景 ===
+        this.api.createPost(this.formData).subscribe(() => {
+          this.showMsg('发布成功');
+          this.uploading = false;
+          // 发布后：重新加载列表，并选中第一条(假设新数据在最前)
+          this.loadPosts(true); 
+        });
       } else {
-        this.api.updatePost(this.formData).subscribe(() => this.afterSave('更新成功'));
+        // === 修改场景 ===
+        const currentId = this.formData.id!; // 记住当前ID
+        this.api.updatePost(this.formData).subscribe(() => {
+          this.showMsg('更新成功');
+          this.uploading = false;
+          // 修改后：重新加载列表，并传入 ID 以便选中当前条
+          this.loadPosts(false, currentId);
+        });
       }
-    } catch (e) { this.uploading = false; this.showMsg('操作失败'); }
+    } catch (e) {
+      this.uploading = false;
+      this.showMsg('操作失败');
+    }
   }
+
 
   afterSave(msg: string) {
     this.uploading = false;
@@ -142,58 +168,91 @@ export class AppComponent implements OnInit {
     this.loadPosts();
   }
 
-  doLike() {
+  onLike() {
     if (!this.selectedPost) return;
     const post = this.selectedPost;
     post.likes = (post.likes || 0) + 1;
     this.api.likePost(post.id).subscribe();
   }
 
-  doDelete() {
+  // 1. 删除跳转：跳到第一条
+  onDeletePost() {
     if (!this.selectedPost || !confirm('确定删除?')) return;
-    this.api.deletePost(this.selectedPost.id).subscribe(() => {
-      this.showMsg('已删除');
-      this.loadPosts();
+    
+    // 乐观更新：先从 UI 移除
+    const deletedId = this.selectedPost.id;
+    this.posts = this.posts.filter(p => p.id !== deletedId);
+    
+    // 立即跳转逻辑
+    if (this.posts.length > 0) {
+      this.onSelectPost(this.posts[0]); // 跳到剩下的第一条
+    } else {
+      this.onNavigate('add'); // 没数据了，跳到新增页
+    }
+
+    // 后台发请求 (静默处理或报错回滚)
+    this.api.deletePost(deletedId).subscribe({
+      next: () => this.showMsg('已删除'),
+      error: () => {
+        this.showMsg('删除失败，正在刷新...');
+        this.loadPosts(); // 失败则重载
+      }
     });
   }
 
-  sendComment() {
-    if (!this.selectedPost || !this.newCommentText) return;
-    const tempName = this.newCommentName || '访客';
+  // 🌟 修改：添加评论 (带 Loading)
+  onAddComment(data: {name: string, text: string}) {
+    if (!this.selectedPost) return;
     
-    // 发送后立即收起输入框，体验更好
-    this.isInputExpanded = false;
-    
-    this.api.addComment(this.selectedPost.id, tempName, this.newCommentText)
-      .subscribe(() => {
+    this.isCommentSubmitting = true; // 开始 loading
+
+    this.api.addComment(this.selectedPost.id, data.name, data.text).subscribe({
+      next: () => {
         const newC: Comment = {
           commentId: Date.now().toString(),
-          commentName: tempName,
-          commentText: this.newCommentText,
+          commentName: data.name,
+          commentText: data.text,
           commentTime: new Date().toISOString()
         };
         if(!this.selectedPost!.comments) this.selectedPost!.comments = [];
         this.selectedPost!.comments.push(newC);
-        this.newCommentText = '';
-      });
-  }
-
-  delComment(cId: string) {
-    if (!this.selectedPost || !confirm('删除该评论?')) return;
-    this.api.deleteComment(this.selectedPost.id, cId).subscribe(() => {
-      this.selectedPost!.comments = this.selectedPost!.comments.filter(c => c.commentId !== cId);
+        
+        this.isCommentSubmitting = false; // 结束 loading
+        
+        // 这是一个 Hack，用来通知子组件清空输入框
+        // 更好的做法是用 Subject，但这里为了简单，我们让子组件监听 OnChanges
+        // 或者我们可以在子组件里直接清空，父组件只管状态
+      },
+      error: () => {
+        this.isCommentSubmitting = false;
+        this.showMsg('评论失败');
+      }
     });
   }
 
-  uploadFilePromise(file: File): Promise<string> {
-    return new Promise((resolve) => {
-      this.api.uploadFile(file).subscribe(url => resolve(url));
+  // 🌟 修改：删除评论 (带 Loading)
+  // 删除评论方法
+  onDeleteComment(cId: string) {
+    if (!this.selectedPost || !confirm('删除该评论?')) return;
+    
+    this.commentDeletingId = cId; // 1. 开始 Loading 动画
+
+    this.api.deleteComment(this.selectedPost.id, cId).subscribe({
+      next: () => {
+        const currentComments = this.selectedPost!.comments || [];
+        this.selectedPost!.comments = currentComments.filter(c => c.commentId !== cId);
+        
+        this.commentDeletingId = null; // 2. 结束 Loading
+        this.showMsg('评论删除成功');   // 3. ✅ 新增：成功提示
+      },
+      error: () => {
+        this.commentDeletingId = null;
+        this.showMsg('删除失败');
+      }
     });
   }
 
   showMsg(msg: string) {
-    this.snackBar.open(msg, '关闭', { duration: 2000, verticalPosition: 'top' });
+    this.snackBar.open(msg, '', { duration: 2000, verticalPosition: 'top' });
   }
-
-  get commentCount(): number { return this.selectedPost?.comments?.length || 0; }
 }
