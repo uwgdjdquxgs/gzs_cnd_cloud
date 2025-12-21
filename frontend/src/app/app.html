@@ -1,0 +1,41 @@
+<mat-toolbar color="primary" class="app-toolbar">
+  <span>Cloud Native Media Store</span>
+  <span class="spacer"></span>
+  <button mat-raised-button color="accent" (click)="openAddDialog()">
+    <mat-icon>add</mat-icon> 发布内容
+  </button>
+</mat-toolbar>
+
+<div class="container">
+  <mat-progress-bar mode="indeterminate" *ngIf="loading"></mat-progress-bar>
+
+  <div class="grid-layout">
+    <mat-card *ngFor="let post of posts" class="post-card" (click)="openDetail(post)">
+      <img mat-card-image [src]="post.mediaUrl" alt="Media" *ngIf="post.mediaType !== 'video'">
+      <video mat-card-image [src]="post.mediaUrl" *ngIf="post.mediaType === 'video'"></video>
+      
+      <mat-card-content>
+        <h3 class="title">{{post.header}}</h3>
+        <p class="text">{{post.text}}</p>
+      </mat-card-content>
+
+      <mat-card-actions (click)="$event.stopPropagation()">
+        <button mat-button color="primary" (click)="onLike(post)">
+          <mat-icon>thumb_up</mat-icon> {{post.likes || 0}}
+        </button>
+        <span class="spacer"></span>
+        <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #menu="matMenu">
+            <button mat-menu-item (click)="openEdit(post)">编辑</button>
+            <button mat-menu-item (click)="onDelete(post)">删除</button>
+        </mat-menu>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <div *ngIf="!loading && posts.length === 0" style="text-align: center; margin-top: 50px; color: #666;">
+      <p>暂无内容，快点击右上角发布吧！</p>
+  </div>
+</div>

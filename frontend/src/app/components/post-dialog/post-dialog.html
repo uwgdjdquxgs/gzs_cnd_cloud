@@ -1,0 +1,41 @@
+<h2 mat-dialog-title class="dialog-title">
+  {{isEdit ? '编辑内容' : '发布新内容'}}
+</h2>
+
+<mat-dialog-content class="dialog-content">
+  <div class="media-upload-area" (click)="fileInput.click()">
+    <input #fileInput type="file" (change)="onFileSelected($event)" hidden accept="image/*,video/*">
+    
+    <div *ngIf="!previewUrl" class="placeholder">
+      <mat-icon>cloud_upload</mat-icon>
+      <p>点击上传图片或视频</p>
+    </div>
+
+    <div *ngIf="previewUrl" class="preview">
+      <img [src]="previewUrl" *ngIf="post.mediaType !== 'video'">
+      <video [src]="previewUrl" *ngIf="post.mediaType === 'video'" controls></video>
+      <div class="change-overlay"><mat-icon>edit</mat-icon></div>
+    </div>
+  </div>
+
+  <div class="form-fields">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>标题</mat-label>
+      <input matInput [(ngModel)]="post.header" placeholder="给你的作品起个名字" required>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>详细描述</mat-label>
+      <textarea matInput [(ngModel)]="post.text" rows="5" placeholder="说点什么..." required></textarea>
+    </mat-form-field>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close [disabled]="uploading">取消</button>
+  <button mat-flat-button color="primary" (click)="save()" [disabled]="uploading || !post.header || !post.text">
+    <mat-icon *ngIf="!uploading">send</mat-icon>
+    <span *ngIf="uploading">处理中...</span>
+    <span *ngIf="!uploading"> {{isEdit ? '保存修改' : '立即发布'}}</span>
+  </button>
+</mat-dialog-actions>

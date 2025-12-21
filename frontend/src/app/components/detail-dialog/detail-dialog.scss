@@ -1,0 +1,112 @@
+.detail-container {
+  display: flex;
+  width: 100%;
+  height: 80vh; // 占屏幕高度 80%
+  overflow: hidden;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+}
+
+.media-section {
+  flex: 3; // 占据 60% 宽度
+  background: black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .hero-media {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
+.info-section {
+  flex: 2; // 占据 40% 宽度
+  background: white;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  position: relative;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  .title { margin: 0; font-size: 1.5rem; }
+}
+
+.meta {
+  color: #888;
+  font-size: 0.85rem;
+  margin: 10px 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+.description {
+  white-space: pre-wrap;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+// 评论区逻辑
+.comments-list {
+  flex: 1; // 自动填充剩余空间
+  overflow-y: auto; // 允许滚动
+  border-top: 1px solid #eee;
+  padding-top: 10px;
+  
+  .section-title { font-size: 1rem; margin-bottom: 10px; }
+  
+  .comment-item {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    
+    .avatar {
+      width: 32px; height: 32px;
+      background: #e0e0e0;
+      border-radius: 50%;
+      display: flex; justify-content: center; align-items: center;
+      font-weight: bold; color: #555;
+    }
+    
+    .comment-content { flex: 1; }
+    
+    .comment-header {
+      display: flex; justify-content: space-between; align-items: baseline;
+      .name { font-weight: 600; font-size: 0.9rem; }
+      .time { font-size: 0.75rem; color: #999; }
+    }
+    .text { font-size: 0.9rem; color: #444; margin-top: 2px; }
+    
+    .del-btn { width: 24px; height: 24px; line-height: 24px; opacity: 0; transition: opacity 0.2s; }
+    &:hover .del-btn { opacity: 1; }
+  }
+}
+
+.comment-input-area {
+  margin-top: auto; // 推到底部
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+  
+  .input-name {
+    width: 100%; border: none; outline: none; 
+    border-bottom: 1px solid #eee; margin-bottom: 8px; padding: 4px;
+    font-size: 0.9rem;
+  }
+  
+  .input-group {
+    display: flex; gap: 10px; align-items: center;
+    .input-text { 
+      flex: 1; padding: 10px; border-radius: 20px; 
+      border: 1px solid #ddd; background: #f9f9f9; outline: none;
+      &:focus { border-color: #0078d4; background: white; }
+    }
+  }
+}

@@ -1,0 +1,54 @@
+<div class="detail-container">
+  <div class="media-section">
+    <img [src]="post.mediaUrl" *ngIf="post.mediaType !== 'video'" class="hero-media">
+    <video [src]="post.mediaUrl" *ngIf="post.mediaType === 'video'" class="hero-media" controls autoplay></video>
+  </div>
+
+  <div class="info-section">
+    <div class="header">
+      <h2 class="title">{{post.header}}</h2>
+      <button mat-icon-button mat-dialog-close><mat-icon>close</mat-icon></button>
+    </div>
+    
+    <div class="meta">
+      <span>发布于 {{post.createdAt | date:'short'}}</span>
+      <span class="likes">👍 {{post.likes || 0}}</span>
+    </div>
+
+    <p class="description">{{post.text}}</p>
+
+    <mat-divider></mat-divider>
+
+    <div class="comments-list">
+      <h3 class="section-title">评论 ({{post.comments ? post.comments.length : 0}})</h3>
+      
+      <div class="empty-state" *ngIf="!post.comments || post.comments.length === 0">
+        抢沙发！快来发表第一条评论。
+      </div>
+
+      <div class="comment-item" *ngFor="let c of post.comments">
+        <div class="avatar">{{c.commentName.charAt(0).toUpperCase()}}</div>
+        <div class="comment-content">
+          <div class="comment-header">
+            <span class="name">{{c.commentName}}</span>
+            <span class="time">{{c.commentTime | date:'MM/dd HH:mm'}}</span>
+          </div>
+          <div class="text">{{c.commentText}}</div>
+        </div>
+        <button mat-icon-button color="warn" class="del-btn" (click)="deleteComment(c.commentId)">
+          <mat-icon style="font-size: 16px;">delete</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="comment-input-area">
+      <input class="input-name" placeholder="昵称" [(ngModel)]="newCommentName">
+      <div class="input-group">
+        <input class="input-text" placeholder="说点什么..." [(ngModel)]="newCommentText" (keyup.enter)="addComment()">
+        <button mat-mini-fab color="primary" (click)="addComment()" [disabled]="submitting">
+          <mat-icon>send</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
