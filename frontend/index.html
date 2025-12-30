@@ -621,38 +621,30 @@
         document.getElementById('form-modal').style.display = 'flex';
     }
 
-    async function openEditModal(id, event) {
-  if(event) event.stopPropagation();
+ async function openEditModal(id, event) {
+        if(event) event.stopPropagation(); // 阻止冒泡
+        try {
+            const res = await fetch(`${ENDPOINTS.GET_ONE}&id=${id}`);
+            const item = await res.json();
 
-  // ✅ 先清空上次选择的文件
-  const fileInput = document.getElementById('file-input');
-  fileInput.value = "";
-
-  try {
-    const res = await fetch(`${ENDPOINTS.GET_ONE}&id=${id}`);
-    const item = await res.json();
-
-    document.getElementById('post-id').value = item.id;
-    document.getElementById('input-header').value = item.header;
-    document.getElementById('input-text').value = item.text;
-    document.getElementById('current-media-url').value = item.mediaUrl;
-
-    document.getElementById('modal-title').innerText = "Edit content";
-    document.getElementById('file-status').innerText =
-      "A media file already exists. Do not select a new file unless you want to replace it.";
-
-    document.getElementById('form-modal').style.display = 'flex';
-  } catch (e) {
-    alert("Unable to load editing data.");
-  }
-}
+            document.getElementById('post-id').value = item.id;
+            document.getElementById('input-header').value = item.header;
+            document.getElementById('input-text').value = item.text;
+            document.getElementById('current-media-url').value = item.mediaUrl;
+            
+            document.getElementById('modal-title').innerText = "Edit content";
+            document.getElementById('file-status').innerText = "A media file already exists. Please do not select a new file unless you intend to replace the current one.";
+            
+            document.getElementById('form-modal').style.display = 'flex';
+        } catch (e) {
+            alert("Unable to load editing data.");
+        }
+    }
 
 
     function closeFormModal() {
-  document.getElementById('form-modal').style.display = 'none';
-  document.getElementById('post-form').reset();
-  document.getElementById('file-input').value = ""; // ✅ 强制清空
-}
+        document.getElementById('form-modal').style.display = 'none';
+    }
 
 
     function closeDetailModal() {
