@@ -179,11 +179,11 @@
 
     <header>
         <h1>Cloud Native Media Store</h1>
-        <button class="btn-primary" onclick="openFormModal()">+ 新增内容</button>
+        <button class="btn-primary" onclick="openFormModal()">+ Added content</button>
     </header>
 
     <div class="container">
-        <div id="loader" class="loader">加载数据中...</div>
+        <div id="loader" class="loader">Loading data......</div>
         <div id="post-grid" class="grid">
             </div>
     </div>
@@ -191,29 +191,29 @@
     <div id="form-modal" class="modal-overlay">
         <div class="modal">
             <button class="close-btn" onclick="closeFormModal()">&times;</button>
-            <h2 id="modal-title">发布新内容</h2>
+            <h2 id="modal-title">Publish new content</h2>
             
             <form id="post-form">
                 <input type="hidden" id="post-id">
                 <input type="hidden" id="current-media-url">
 
                 <div class="form-group">
-                    <label>媒体文件 (图片/视频)</label>
+                    <label>Media files (images/videos)</label>
                     <input type="file" id="file-input" accept="image/*,video/*">
-                    <small style="color: #666; display: block; margin-top: 5px;" id="file-status">未选择文件 (如果是编辑模式且不修改文件，可留空)</small>
+                    <small style="color: #666; display: block; margin-top: 5px;" id="file-status">No file selected (If in editing mode and you don't need to modify the file, you can leave this blank)</small>
                 </div>
 
                 <div class="form-group">
-                    <label>标题</label>
-                    <input type="text" id="input-header" required placeholder="请输入标题">
+                    <label>title</label>
+                    <input type="text" id="input-header" required placeholder="Please enter the title.">
                 </div>
 
                 <div class="form-group">
-                    <label>描述内容</label>
-                    <textarea id="input-text" rows="4" required placeholder="请输入详细描述"></textarea>
+                    <label>Description</label>
+                    <textarea id="input-text" rows="4" required placeholder="Please enter a detailed description."></textarea>
                 </div>
 
-                <button type="submit" class="btn-submit" id="submit-btn">提交发布</button>
+                <button type="submit" class="btn-submit" id="submit-btn">Submit for publication</button>
             </form>
         </div>
     </div>
@@ -256,7 +256,7 @@
             const data = await res.json();
             
             if (data.length === 0) {
-                grid.innerHTML = '<p style="text-align:center; width:100%;">暂无内容，请点击右上角新增。</p>';
+                grid.innerHTML = '<p style="text-align:center; width:100%;">No content available. Please click the "Add New" button in the upper right corner.</p>';
                 return;
             }
 
@@ -266,7 +266,7 @@
             });
         } catch (err) {
             console.error(err);
-            alert("加载列表失败: " + err.message);
+            alert("Failed to load list: " + err.message);
         } finally {
             document.getElementById('loader').style.display = 'none';
         }
@@ -292,8 +292,8 @@
             <div onclick="viewDetail('${item.id}')">
                 ${mediaHtml}
                 <div class="card-body">
-                    <h3 class="card-title">${item.header || '无标题'}</h3>
-                    <p class="card-text">${item.text || '无内容'}</p>
+                    <h3 class="card-title">${item.header || 'Untitled'}</h3>
+                    <p class="card-text">${item.text || 'No content'}</p>
                 </div>
             </div>
             <div class="card-footer">
@@ -302,8 +302,8 @@
                 </button>
 
                 <div style="margin-left:auto;">
-                    <button class="btn-edit" onclick="openEditModal('${item.id}', event)">编辑</button>
-                    <button class="btn-danger" onclick="deletePost('${item.id}', event)">删除</button>
+                    <button class="btn-edit" onclick="openEditModal('${item.id}', event)">edit</button>
+                    <button class="btn-danger" onclick="deletePost('${item.id}', event)">delete</button>
                 </div>
             </div>
         `;
@@ -331,24 +331,24 @@
                 <h2>${item.header}</h2>
                 <p style="white-space: pre-wrap;">${item.text}</p>
                 <div style="display:flex; justify-content:space-between; align-items:center; color:#888; margin-top:10px;">
-                    <small>发布时间: ${item.createdAt || '未知'}</small>
+                    <small>Release time: ${item.createdAt || 'unknown'}</small>
                     <strong>👍 ${item.likes || 0}</strong>
                 </div>
                 
                 <div class="comments-section">
-                    <div class="comments-header">评论区 (${item.comments ? item.comments.length : 0})</div>
+                    <div class="comments-header">Comments section (${item.comments ? item.comments.length : 0})</div>
                     
                     <div id="comments-list">
                         ${renderComments(item.comments, item.id)}
                     </div>
 
                     <div class="add-comment-box">
-                        <div style="font-weight:bold; margin-bottom:10px;">发表新评论</div>
+                        <div style="font-weight:bold; margin-bottom:10px;">Post a new comment</div>
                         <div class="add-comment-row">
-                            <input type="text" id="new-comment-name" placeholder="你的昵称" style="flex:1;">
-                            <input type="text" id="new-comment-text" placeholder="说点什么..." style="flex:3;">
+                            <input type="text" id="new-comment-name" placeholder="Your nickname" style="flex:1;">
+                            <input type="text" id="new-comment-text" placeholder="Say something...." style="flex:3;">
                         </div>
-                        <button class="btn-submit" onclick="submitComment('${item.id}')" style="margin-top:0;">发送评论</button>
+                        <button class="btn-submit" onclick="submitComment('${item.id}')" style="margin-top:0;">Send comment</button>
                     </div>
                 </div>
                 `;
@@ -357,23 +357,23 @@
             document.getElementById('detail-modal').style.display = 'flex';
         } catch (err) {
             console.error(err);
-            alert("获取详情失败");
+            alert("Failed to retrieve details.");
         }
     }
 
     // 辅助：渲染评论列表 HTML
     function renderComments(comments, postId) {
         if (!comments || comments.length === 0) {
-            return '<div style="color:#888; padding:10px 0;">暂无评论，快来抢沙发吧~</div>';
+            return '<div style="color:#888; padding:10px 0;">No comments yet! Be the first to leave a comment!</div>';
         }
 
         return comments.map(c => `
             <div class="comment-item">
                 <div class="comment-meta">
-                    <span style="font-weight:bold;">${c.commentName || '匿名'}</span>
+                    <span style="font-weight:bold;">${c.commentName || 'anonymous'}</span>
                     <span>
                         ${c.commentTime ? new Date(c.commentTime).toLocaleString() : ''}
-                        <button class="btn-danger btn-small" onclick="deleteComment('${postId}', '${c.commentId}')">删除</button>
+                        <button class="btn-danger btn-small" onclick="deleteComment('${postId}', '${c.commentId}')">delete</button>
                     </span>
                 </div>
                 <div class="comment-text">${c.commentText || ''}</div>
@@ -410,7 +410,7 @@
                 countSpan.innerText = data.newLikes; // 用真实数据覆盖
             } else {
                 countSpan.innerText = currentLikes; // 失败回滚
-                alert("点赞失败，请重试");
+                alert("Liking failed, please try again.");
             }
         } catch (err) {
             console.error(err);
@@ -427,7 +427,7 @@
         const text = textInput.value.trim();
 
         if (!name || !text) {
-            alert("请填写昵称和评论内容！");
+            alert("Please fill in your nickname and comment!");
             return;
         }
 
@@ -448,17 +448,17 @@
             if (res.ok) {
                 viewDetail(postId); // 刷新详情页
             } else {
-                alert("评论失败，请检查后端服务。");
+                alert("Comment submission failed. Please check the backend service.");
             }
         } catch (err) {
             console.error(err);
-            alert("评论请求出错: " + err.message);
+            alert("Error requesting comments: " + err.message);
         }
     }
 
     // 删除评论
     async function deleteComment(postId, commentId) {
-        if (!confirm("确定要删除这条评论吗？")) return;
+        if (!confirm("Are you sure you want to delete this comment?")) return;
 
         let baseUrl = ENDPOINTS.DEL_COMMENT_BASE;
         if (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1);
@@ -477,15 +477,15 @@
                 viewDetail(postId); // 刷新
             } else {
                 if (res.status === 404) {
-                    alert("评论可能已被删除");
+                    alert("The comment may have been deleted.");
                     viewDetail(postId); 
                 } else {
-                    alert("删除失败");
+                    alert("Deletion failed.");
                 }
             }
         } catch (err) {
             console.error(err);
-            alert("请求出错: " + err.message);
+            alert("Request error: " + err.message);
         }
     }
 
@@ -493,7 +493,7 @@
     async function deletePost(id, event) {
         if(event) event.stopPropagation(); // 阻止冒泡
         
-        if (!confirm("确定要删除这条内容吗？")) return;
+        if (!confirm("Are you sure you want to delete this item?")) return;
         try {
             const res = await fetch(ENDPOINTS.DEL, {
                 method: 'POST',
@@ -501,10 +501,10 @@
                 body: JSON.stringify({ id: id })
             });
             if (res.ok) {
-                alert("删除成功");
+                alert("Successfully deleted");
                 loadPosts();
             } else {
-                throw new Error("删除失败");
+                throw new Error("Deletion failed.");
             }
         } catch (err) {
             alert(err.message);
@@ -514,8 +514,8 @@
     // 上传文件
     function uploadFileToBlob(file) {
         return new Promise((resolve, reject) => {
-            if (!ENDPOINTS.UPLOAD || ENDPOINTS.UPLOAD.includes("你的_UPLOAD")) {
-                reject(new Error("请配置 UPLOAD API URL！"));
+            if (!ENDPOINTS.UPLOAD || ENDPOINTS.UPLOAD.includes("your_UPLOAD")) {
+                reject(new Error("Please configure. UPLOAD API URL！"));
                 return;
             }
 
@@ -554,7 +554,7 @@
         e.preventDefault();
         const submitBtn = document.getElementById('submit-btn');
         submitBtn.disabled = true;
-        submitBtn.innerText = "处理中...";
+        submitBtn.innerText = "Processing...";
 
         const id = document.getElementById('post-id').value; 
         const header = document.getElementById('input-header').value;
@@ -567,7 +567,7 @@
 
         try {
             if (file) {
-                submitBtn.innerText = "正在上传文件...";
+                submitBtn.innerText = "Uploading files......";
                 mediaType = file.type.startsWith('video') ? 'video' : 'image';
                 mediaUrl = await uploadFileToBlob(file);
             }
@@ -580,24 +580,24 @@
             };
 
             if (id) {
-                submitBtn.innerText = "正在保存修改...";
+                submitBtn.innerText = "Saving changes......";
                 payload.id = id; 
                 const res = await fetch(ENDPOINTS.UPDATE, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                if (!res.ok) throw new Error("更新失败");
-                alert("更新成功！");
+                if (!res.ok) throw new Error("Update failed");
+                alert("Update successful！");
             } else {
-                submitBtn.innerText = "正在发布...";
+                submitBtn.innerText = "Publishing......";
                 const res = await fetch(ENDPOINTS.ADD, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                if (!res.ok) throw new Error("发布失败");
-                alert("发布成功！");
+                if (!res.ok) throw new Error("Publishing failed.");
+                alert("Published successfully！");
             }
 
             closeFormModal();
@@ -605,10 +605,10 @@
 
         } catch (err) {
             console.error(err);
-            alert("操作失败: " + err.message);
+            alert("Operation failed: " + err.message);
         } finally {
             submitBtn.disabled = false;
-            submitBtn.innerText = "提交发布";
+            submitBtn.innerText = "Submit for publication";
         }
     });
 
@@ -616,8 +616,8 @@
         document.getElementById('post-form').reset();
         document.getElementById('post-id').value = '';
         document.getElementById('current-media-url').value = '';
-        document.getElementById('modal-title').innerText = "发布新内容";
-        document.getElementById('file-status').innerText = "请选择文件";
+        document.getElementById('modal-title').innerText = "Publish new content";
+        document.getElementById('file-status').innerText = "Please select a file.";
         document.getElementById('form-modal').style.display = 'flex';
     }
 
@@ -632,12 +632,12 @@
             document.getElementById('input-text').value = item.text;
             document.getElementById('current-media-url').value = item.mediaUrl;
             
-            document.getElementById('modal-title').innerText = "编辑内容";
-            document.getElementById('file-status').innerText = "当前已有媒体文件。如不修改，请勿选择新文件。";
+            document.getElementById('modal-title').innerText = "Edit content";
+            document.getElementById('file-status').innerText = "A media file already exists. Please do not select a new file unless you intend to replace the current one.";
             
             document.getElementById('form-modal').style.display = 'flex';
         } catch (e) {
-            alert("无法加载编辑数据");
+            alert("Unable to load editing data.");
         }
     }
 
