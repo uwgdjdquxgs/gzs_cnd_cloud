@@ -413,6 +413,59 @@
     .modal{
       background: rgba(255,255,255,.96);
     }
+    /* ===== FIX: Modal text too light ===== */
+.modal {
+  color: #111827;                 /* 深色文字 */
+}
+
+.modal h2,
+.modal h3,
+.modal label {
+  color: #111827;
+  font-weight: 700;
+}
+
+.modal small,
+.modal p,
+.modal span,
+.modal div {
+  color: #374151;                 /* 次级文字 */
+}
+
+/* 表单控件里的文字 */
+.modal input,
+.modal textarea,
+.modal select {
+  color: #111827;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+}
+
+.modal input::placeholder,
+.modal textarea::placeholder {
+  color: #6b7280;
+}
+
+/* 文件选择那行的说明文字（file-status） */
+#file-status {
+  color: #374151 !important;
+  font-weight: 600;
+}
+
+/* 右上角 X 更清晰 */
+.modal .close-btn {
+  color: #111827;
+  opacity: 0.75;
+}
+.modal .close-btn:hover {
+  opacity: 1;
+}
+
+/* Submit 按钮文字确保是白色 */
+.btn-submit {
+  color: #ffffff !important;
+}
+
   </style>
 </head>
 
