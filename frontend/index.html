@@ -24,14 +24,37 @@
 
         /* Top navigation */
         header {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
+    background-color: var(--primary-color);
+    color: white;
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+/* 左右占位，保证居中 */
+.header-left,
+.header-right {
+    width: 200px;   /* 可微调 */
+    display: flex;
+    align-items: center;
+}
+
+/* 右侧按钮靠右 */
+.header-right {
+    justify-content: flex-end;
+}
+
+/* 标题真正居中 */
+.header-title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    font-size: 1.5rem;
+    white-space: nowrap;
+}
+
 
         header h1 { margin: 0; font-size: 1.5rem; }
 
@@ -178,9 +201,15 @@
 <body>
 
     <header>
-        <h1>Cloud Native Media Store</h1>
+    <div class="header-left"></div>
+
+    <h1 class="header-title">Cloud Native Media Store</h1>
+
+    <div class="header-right">
         <button class="btn-primary" onclick="openFormModal()">+ Add New Content</button>
-    </header>
+    </div>
+</header>
+
 
     <div class="container">
         <div id="loader" class="loader">Loading data...</div>
