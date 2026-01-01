@@ -1,667 +1,919 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cloud Native Media Store V3</title>
-    <style>
-        :root {
-            --primary-color: #0078d4;
-            --bg-color: #f3f2f1;
-            --card-bg: #ffffff;
-            --text-color: #323130;
-            --danger-color: #d13438;
-            --comment-bg: #f8f9fa;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cloud Native Media Store V3</title>
 
-        body {
-            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-        }
+  <style>
+    :root {
+      --primary-color: #000000;
+      --bg-color: #f3f2f1;
+      --card-bg: #ffffff;
+      --text-color: #323130;
+      --danger-color: #d13438;
+      --comment-bg: #f8f9fa;
+    }
 
-        /* 顶部导航 */
-        header {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
+    body {
+      font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 0;
+    }
 
-        header h1 { margin: 0; font-size: 1.5rem; }
+    /* Top navigation */
+    header {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
 
-        button {
-            cursor: pointer;
-            padding: 0.6rem 1.2rem;
-            border: none;
-            border-radius: 4px;
-            font-weight: 600;
-            transition: opacity 0.2s;
-        }
-        
-        button:hover { opacity: 0.9; }
+    /* 左右占位，保证居中 */
+    .header-left,
+    .header-right {
+      width: 200px;   /* 可微调 */
+      display: flex;
+      align-items: center;
+    }
 
-        .btn-primary { background-color: white; color: var(--primary-color); }
-        .btn-submit { background-color: var(--primary-color); color: white; width: 100%; margin-top: 10px;}
-        .btn-danger { background-color: var(--danger-color); color: white; padding: 0.4rem 0.8rem; font-size: 0.8rem;}
-        .btn-edit { background-color: #ffb900; color: black; padding: 0.4rem 0.8rem; font-size: 0.8rem; margin-right: 5px;}
-        .btn-small { padding: 0.3rem 0.6rem; font-size: 0.75rem; margin-left: 10px; }
-        
-        /* 点赞按钮样式 */
-        .btn-like { background: transparent; border: 1px solid #ccc; color: #333; display: flex; align-items: center; gap: 5px; padding: 0.4rem 0.8rem; }
-        .btn-like:hover { background: #f0f0f0; border-color: #999; }
+    /* 右侧按钮靠右 */
+    .header-right {
+      justify-content: flex-end;
+    }
 
-        /* 主容器 */
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
+    /* 标题真正居中 */
+    .header-title {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      margin: 0;
+      font-size: 1.5rem;
+      white-space: nowrap;
+    }
 
-        /* 网格布局 */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
+    header h1 { margin: 0; font-size: 1.5rem; }
 
-        /* 卡片样式 */
-        .card {
-            background: var(--card-bg);
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 1.6px 3.6px rgba(0,0,0,0.13), 0 0.3px 0.9px rgba(0,0,0,0.11);
-            transition: transform 0.2s;
-            display: flex;
-            flex-direction: column;
-        }
+    button {
+      cursor: pointer;
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 4px;
+      font-weight: 600;
+      transition: opacity 0.2s;
+    }
 
-        .card:hover { transform: translateY(-2px); box-shadow: 0 3.2px 7.2px rgba(0,0,0,0.13), 0 0.6px 1.8px rgba(0,0,0,0.11); }
+    button:hover { opacity: 0.9; }
 
-        .card-media {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            background-color: #e1dfdd;
-            cursor: pointer;
-        }
+    .btn-primary { background-color: white; color: var(--primary-color); }
+    .btn-submit { background-color: var(--primary-color); color: white; width: 100%; margin-top: 10px;}
+    .btn-danger { background-color: var(--danger-color); color: white; padding: 0.4rem 0.8rem; font-size: 0.8rem;}
+    .btn-edit { background-color: #ffb900; color: black; padding: 0.4rem 0.8rem; font-size: 0.8rem; margin-right: 5px;}
+    .btn-small { padding: 0.3rem 0.6rem; font-size: 0.75rem; margin-left: 10px; }
 
-        .card-body { padding: 1rem; flex-grow: 1; }
-        .card-title { margin: 0 0 0.5rem 0; font-size: 1.1rem; font-weight: bold; }
-        .card-text { color: #605e5c; font-size: 0.9rem; margin-bottom: 1rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-        
-        .card-footer {
-            padding: 1rem;
-            border-top: 1px solid #e1dfdd;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    /* Like button style */
+    .btn-like {
+      background: transparent;
+      border: 1px solid #ccc;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 0.4rem 0.8rem;
+    }
+    .btn-like:hover { background: #f0f0f0; border-color: #999; }
 
-        /* 模态框 (Modal) */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
+    /* Main container */
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
 
-        .modal {
-            background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-            position: relative;
-        }
-        
-        /* 详情模态框特有样式 */
-        .modal-detail { max-width: 800px; }
-        .detail-media { width: 100%; max-height: 500px; object-fit: contain; margin-bottom: 1rem; background: black; }
+    /* Grid layout */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
 
-        .form-group { margin-bottom: 1rem; }
-        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
-        .form-group input, .form-group textarea, .form-group select {
-            width: 100%; padding: 0.5rem;
-            border: 1px solid #8a8886; border-radius: 4px; box-sizing: border-box;
-        }
+    /* Card style */
+    .card {
+      background: var(--card-bg);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1.6px 3.6px rgba(0,0,0,0.13), 0 0.3px 0.9px rgba(0,0,0,0.11);
+      transition: transform 0.2s;
+      display: flex;
+      flex-direction: column;
+    }
 
-        .close-btn {
-            position: absolute; top: 1rem; right: 1rem;
-            background: none; border: none; font-size: 1.5rem; color: #605e5c;
-        }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 3.2px 7.2px rgba(0,0,0,0.13), 0 0.6px 1.8px rgba(0,0,0,0.11);
+    }
 
-        /* 加载动画 */
-        .loader { text-align: center; padding: 2rem; display: none; }
+    .card-media {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      background-color: #e1dfdd;
+      cursor: pointer;
+    }
 
-        /* ================= 新增：评论区样式 ================= */
-        .comments-section {
-            margin-top: 2rem;
-            border-top: 1px solid #e1dfdd;
-            padding-top: 1rem;
-        }
-        .comments-header { font-size: 1.2rem; font-weight: bold; margin-bottom: 1rem; }
-        .comment-item {
-            background-color: var(--comment-bg);
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            border-left: 3px solid var(--primary-color);
-        }
-        .comment-meta {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.85rem;
-            color: #666;
-            margin-bottom: 5px;
-        }
-        .comment-text { font-size: 0.95rem; }
-        .add-comment-box {
-            margin-top: 1.5rem;
-            background: #f0f0f0;
-            padding: 15px;
-            border-radius: 8px;
-        }
-        .add-comment-row { display: flex; gap: 10px; margin-bottom: 10px; }
-        .add-comment-row input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-    </style>
+    .card-body { padding: 1rem; flex-grow: 1; }
+    .card-title { margin: 0 0 0.5rem 0; font-size: 1.1rem; font-weight: bold; }
+    .card-text {
+      color: #605e5c;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-footer {
+      padding: 1rem;
+      border-top: 1px solid #e1dfdd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    /* Detail modal specific styles */
+    .modal-detail { max-width: 800px; }
+    .detail-media {
+      width: 100%;
+      max-height: 500px;
+      object-fit: contain;
+      margin-bottom: 1rem;
+      background: black;
+    }
+
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%; padding: 0.5rem;
+      border: 1px solid #8a8886; border-radius: 4px; box-sizing: border-box;
+    }
+
+    .close-btn {
+      position: absolute; top: 1rem; right: 1rem;
+      background: none; border: none; font-size: 1.5rem; color: #605e5c;
+    }
+
+    /* Loading */
+    .loader { text-align: center; padding: 2rem; display: none; }
+
+    /* ================= Comments section styles ================= */
+    .comments-section {
+      margin-top: 2rem;
+      border-top: 1px solid #e1dfdd;
+      padding-top: 1rem;
+    }
+    .comments-header { font-size: 1.2rem; font-weight: bold; margin-bottom: 1rem; }
+    .comment-item {
+      background-color: var(--comment-bg);
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      border-left: 3px solid var(--primary-color);
+    }
+    .comment-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 5px;
+    }
+    .comment-text { font-size: 0.95rem; }
+    .add-comment-box {
+      margin-top: 1.5rem;
+      background: #f0f0f0;
+      padding: 15px;
+      border-radius: 8px;
+    }
+    .add-comment-row { display: flex; gap: 10px; margin-bottom: 10px; }
+    .add-comment-row input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+
+
+    /* ==========================================================
+       ✅ V3.1 VISUAL DIFFERENTIATION PACK (APPENDED)
+       目的：第一眼看起来不再像“标准三列白卡片CRUD”
+       ========================================================== */
+
+    /* 更明显的色彩体系 */
+    :root{
+      --primary-color:#4f46e5;      /* Indigo */
+      --bg-color:#0b1020;           /* 深色背景 */
+      --card-bg: rgba(255,255,255,.08);
+      --text-color:#e8eaf0;
+      --danger-color:#ef4444;
+      --comment-bg: rgba(255,255,255,.06);
+    }
+
+    body{
+      background: radial-gradient(1200px 600px at 20% 0%, rgba(79,70,229,.35), transparent 60%),
+                  radial-gradient(900px 500px at 80% 20%, rgba(34,197,94,.18), transparent 55%),
+                  var(--bg-color);
+      color: var(--text-color);
+    }
+
+    /* Header 变成“胶囊浮动条” */
+    header{
+      background: rgba(255,255,255,.06);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      margin: 16px auto 0;
+      max-width: 1220px;
+      border-radius: 999px;
+      padding: 12px 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+
+    /* 标题不再绝对定位，改左对齐更产品化 */
+    .header-title{
+      position: static;
+      transform: none;
+      margin: 0 16px;
+      font-size: 1.15rem;
+      letter-spacing: .5px;
+      font-weight: 700;
+    }
+
+    /* 左侧加“系统徽标”区 */
+    .header-left{
+      width: auto;
+      gap: 10px;
+    }
+    .header-left::before{
+      content:"";
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(79,70,229,.9), rgba(34,197,94,.7));
+      display: inline-block;
+    }
+
+    /* 按钮改成渐变主按钮 */
+    .btn-primary{
+      background: linear-gradient(135deg, rgba(79,70,229,1), rgba(99,102,241,1));
+      color: white;
+      border-radius: 999px;
+      padding: 0.55rem 1.05rem;
+    }
+
+    /* 整体布局：容器内变成“左侧面板 + 右侧内容” */
+    .container{
+      max-width: 1220px;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    /* 新增侧边栏 */
+    .sidebar{
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 18px;
+      padding: 16px;
+      position: sticky;
+      top: 90px;
+      height: fit-content;
+      backdrop-filter: blur(10px);
+    }
+    .sidebar h3{
+      margin: 0 0 10px 0;
+      font-size: 0.95rem;
+    }
+    .sidebar .chip{
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      margin: 6px 6px 0 0;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      font-size: 0.85rem;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* 关键：把 grid 改成“瀑布流”效果 */
+    .grid{
+      column-count: 3;
+      column-gap: 18px;
+      display: block; /* 覆盖之前 display:grid */
+    }
+    @media (max-width: 1100px){
+      .grid{ column-count: 2; }
+      .container{ grid-template-columns: 1fr; }
+      .sidebar{ position: static; }
+    }
+    @media (max-width: 720px){
+      .grid{ column-count: 1; }
+    }
+
+    /* 卡片变成“竖向瀑布流卡片”，不再每张高度一致 */
+    .card{
+      display: inline-block;        /* 配合 column */
+      width: 100%;
+      margin: 0 0 18px;
+      border-radius: 18px;
+      overflow: hidden;
+      background: var(--card-bg);
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: 0 16px 40px rgba(0,0,0,.28);
+      transform: none;
+    }
+    .card:hover{
+      box-shadow: 0 22px 60px rgba(0,0,0,.35);
+    }
+
+    /* 媒体高度不固定 */
+    .card-media{
+      height: auto;
+      max-height: 320px;
+      object-fit: cover;
+      background: rgba(255,255,255,.04);
+    }
+
+    /* 卡片内部排版更像“内容流” */
+    .card-body{
+      padding: 14px 14px 10px;
+    }
+    .card-title{
+      font-size: 1.05rem;
+      margin: 0 0 8px 0;
+      color: var(--text-color);
+    }
+    .card-text{
+      color: rgba(232,234,240,.78);
+      -webkit-line-clamp: 2;
+    }
+
+    .card-footer{
+      border-top: 1px solid rgba(255,255,255,.10);
+      padding: 12px 14px;
+      background: rgba(255,255,255,.03);
+    }
+
+    /* Like按钮 */
+    .btn-like{
+      border: 0;
+      background: rgba(255,255,255,.10);
+      color: var(--text-color);
+      border-radius: 999px;
+    }
+    .btn-like:hover{ background: rgba(255,255,255,.16); }
+
+    /* Edit/Delete 变成幽灵按钮 */
+    .btn-edit{
+      background: transparent;
+      border: 1px solid rgba(255,255,255,.18);
+      color: var(--text-color);
+      border-radius: 999px;
+    }
+    .btn-danger{
+      background: transparent;
+      border: 1px solid rgba(239,68,68,.55);
+      color: rgba(239,68,68,1);
+      border-radius: 999px;
+    }
+
+    /* 深色主题下的 modal 更协调（可选） */
+    .modal{
+      background: rgba(255,255,255,.96);
+    }
+  </style>
 </head>
+
 <body>
 
-    <header>
-        <h1>Cloud Native Media Store</h1>
-        <button class="btn-primary" onclick="openFormModal()">+ 新增内容</button>
-    </header>
-
-    <div class="container">
-        <div id="loader" class="loader">加载数据中...</div>
-        <div id="post-grid" class="grid">
-            </div>
+  <header>
+    <div class="header-left"></div>
+    <h1 class="header-title">Cloud Native Media Store</h1>
+    <div class="header-right">
+      <button class="btn-primary" onclick="openFormModal()">+ Add New Content</button>
     </div>
+  </header>
 
-    <div id="form-modal" class="modal-overlay">
-        <div class="modal">
-            <button class="close-btn" onclick="closeFormModal()">&times;</button>
-            <h2 id="modal-title">发布新内容</h2>
-            
-            <form id="post-form">
-                <input type="hidden" id="post-id">
-                <input type="hidden" id="current-media-url">
 
-                <div class="form-group">
-                    <label>媒体文件 (图片/视频)</label>
-                    <input type="file" id="file-input" accept="image/*,video/*">
-                    <small style="color: #666; display: block; margin-top: 5px;" id="file-status">未选择文件 (如果是编辑模式且不修改文件，可留空)</small>
-                </div>
+  <div class="container">
 
-                <div class="form-group">
-                    <label>标题</label>
-                    <input type="text" id="input-header" required placeholder="请输入标题">
-                </div>
+    <!-- ✅ 新增：左侧侧边栏（让布局第一眼就不像你舍友） -->
+    <aside class="sidebar">
+      <h3>Quick Filters</h3>
+      <div>
+        <span class="chip">📷 Images</span>
+        <span class="chip">🎬 Videos</span>
+        <span class="chip">🔥 Popular</span>
+        <span class="chip">🕒 Latest</span>
+      </div>
 
-                <div class="form-group">
-                    <label>描述内容</label>
-                    <textarea id="input-text" rows="4" required placeholder="请输入详细描述"></textarea>
-                </div>
+      <div style="margin-top:14px; opacity:.85; font-size:.85rem; line-height:1.5;">
+        Tips: Click a card to open detail view.<br/>
+        Use “Add New Content” to publish media.
+      </div>
+    </aside>
 
-                <button type="submit" class="btn-submit" id="submit-btn">提交发布</button>
-            </form>
+    <!-- 右侧内容 -->
+    <main>
+      <div id="loader" class="loader">Loading data...</div>
+      <div id="post-grid" class="grid"></div>
+    </main>
+
+  </div>
+
+  <div id="form-modal" class="modal-overlay">
+    <div class="modal">
+      <button class="close-btn" onclick="closeFormModal()">&times;</button>
+      <h2 id="modal-title">Create New Post</h2>
+
+      <form id="post-form">
+        <input type="hidden" id="post-id">
+        <input type="hidden" id="current-media-url">
+
+        <div class="form-group">
+          <label>Media File (Image/Video)</label>
+          <input type="file" id="file-input" accept="image/*,video/*">
+          <small style="color: #666; display: block; margin-top: 5px;" id="file-status">
+            No file selected (If editing and not changing the file, you can leave this empty)
+          </small>
         </div>
-    </div>
 
-    <div id="detail-modal" class="modal-overlay">
-        <div class="modal modal-detail">
-            <button class="close-btn" onclick="closeDetailModal()">&times;</button>
-            <div id="detail-content">
-                </div>
+        <div class="form-group">
+          <label>Title</label>
+          <input type="text" id="input-header" required placeholder="Enter title">
         </div>
+
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="input-text" rows="4" required placeholder="Enter detailed description"></textarea>
+        </div>
+
+        <button type="submit" class="btn-submit" id="submit-btn">Submit</button>
+      </form>
     </div>
+  </div>
+
+  <div id="detail-modal" class="modal-overlay">
+    <div class="modal modal-detail">
+      <button class="close-btn" onclick="closeDetailModal()">&times;</button>
+      <div id="detail-content"></div>
+    </div>
+  </div>
+
 
 <script>
-    // ================= 配置区域 =================
-    const ENDPOINTS = {
-        // Logic Apps
-        UPLOAD: "https://prod-15.koreacentral.logic.azure.com:443/workflows/0817a48ad9c6493dbba2476e78eb473f/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=BdCMlzci6o0XreVuLDUXrmWrM6_R_cYmqKzjnUmjLks", 
-        ADD: "https://prod-14.koreacentral.logic.azure.com:443/workflows/5d118c30ac2e4610bc5d4d27d20d35d4/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=88DrMgkRKoDyvHdc_X2kMZhZfLaYONva2Mnz3EXhJX8",
-        GET_ALL: "https://prod-16.koreacentral.logic.azure.com:443/workflows/230ad18fc28e4230b4d189d5a16e69bf/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=43cNa_br4C75BTLGtHwVPwH0UJHFbM13l4MXVJNxMHo",
-        GET_ONE: "https://prod-13.koreacentral.logic.azure.com:443/workflows/b0585e295a894cc8a461f41e748208ea/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=W_N1g2MLOB4-GtqY1vMBE5w1JRo98ubisg3NfprYGEI", 
-        DEL: "https://prod-27.koreacentral.logic.azure.com:443/workflows/d20845c12ebe447aad98c8b0ed765a06/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=yvYyiECIpp5qj8Myf3yQC1_HwHqhKZd8wjSzEcUb2a4",
-        UPDATE: "https://prod-22.koreacentral.logic.azure.com:443/workflows/dc0b1b12f1b94703be3eabd5afdb8d1c/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=QRZAdSHEs_ZWjlL12vb0odClghBCBm9HhLwWnwKhG1A",
-        
-        // Azure Functions
-        ADD_COMMENT_BASE: "https://functionapp0002-ewe8cmcjgghtcmad.koreacentral-01.azurewebsites.net/api/addComment",
-        DEL_COMMENT_BASE: "https://functionapp0002-ewe8cmcjgghtcmad.koreacentral-01.azurewebsites.net/api/delComment",
-        ADD_LIKE_BASE: "https://functionapp0002-ewe8cmcjgghtcmad.koreacentral-01.azurewebsites.net/api/addLike"
-    };
+  // ================= Configuration =================
+  const ENDPOINTS = {
+    // Logic Apps
+    UPLOAD: "https://prod-15.koreacentral.logic.azure.com:443/workflows/0817a48ad9c6493dbba2476e78eb473f/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=BdCMlzci6o0XreVuLDUXrmWrM6_R_cYmqKzjnUmjLks",
+    ADD: "https://prod-14.koreacentral.logic.azure.com:443/workflows/5d118c30ac2e4610bc5d4d27d20d35d4/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=88DrMgkRKoDyvHdc_X2kMZhZfLaYONva2Mnz3EXhJX8",
+    GET_ALL: "https://prod-16.koreacentral.logic.azure.com:443/workflows/230ad18fc28e4230b4d189d5a16e69bf/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=43cNa_br4C75BTLGtHwVPwH0UJHFbM13l4MXVJNxMHo",
+    GET_ONE: "https://prod-13.koreacentral.logic.azure.com:443/workflows/b0585e295a894cc8a461f41e748208ea/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=W_N1g2MLOB4-GtqY1vMBE5w1JRo98ubisg3NfprYGEI",
+    DEL: "https://prod-27.koreacentral.logic.azure.com:443/workflows/d20845c12ebe447aad98c8b0ed765a06/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=yvYyiECIpp5qj8Myf3yQC1_HwHqhKZd8wjSzEcUb2a4",
+    UPDATE: "https://prod-22.koreacentral.logic.azure.com:443/workflows/dc0b1b12f1b94703be3eabd5afdb8d1c/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=QRZAdSHEs_ZWjlL12vb0odClghBCBm9HhLwWnwKhG1A",
 
-    // ================= 核心逻辑 =================
+    // Azure Functions
+    ADD_COMMENT_BASE: "https://functionapp0002-ewe8cmcjgghtcmad.koreacentral-01.azurewebsites.net/api/addComment",
+    DEL_COMMENT_BASE: "https://functionapp0002-ewe8cmcjgghtcmad.koreacentral-01.azurewebsites.net/api/delComment",
+    ADD_LIKE_BASE: "https://functionapp0002-ewe8cmcjgghtcmad.koreacentral-01.azurewebsites.net/api/addLike"
+  };
 
-    // 1. 初始化：加载列表
-    async function loadPosts() {
-        document.getElementById('loader').style.display = 'block';
-        const grid = document.getElementById('post-grid');
-        grid.innerHTML = '';
+  // ================= Core Logic =================
 
-        try {
-            const res = await fetch(ENDPOINTS.GET_ALL);
-            const data = await res.json();
-            
-            if (data.length === 0) {
-                grid.innerHTML = '<p style="text-align:center; width:100%;">暂无内容，请点击右上角新增。</p>';
-                return;
-            }
+  // 1. Init: load list
+  async function loadPosts() {
+    document.getElementById('loader').style.display = 'block';
+    const grid = document.getElementById('post-grid');
+    grid.innerHTML = '';
 
-            data.forEach(item => {
-                const card = createCardElement(item);
-                grid.appendChild(card);
-            });
-        } catch (err) {
-            console.error(err);
-            alert("加载列表失败: " + err.message);
-        } finally {
-            document.getElementById('loader').style.display = 'none';
-        }
+    try {
+      const res = await fetch(ENDPOINTS.GET_ALL);
+      const data = await res.json();
+
+      if (data.length === 0) {
+        grid.innerHTML = '<p style="text-align:center; width:100%;">No content available. Click "Add New Content" in the top-right to create one.</p>';
+        return;
+      }
+
+      data.forEach(item => {
+        const card = createCardElement(item);
+        grid.appendChild(card);
+      });
+    } catch (err) {
+      console.error(err);
+      alert("Failed to load list: " + err.message);
+    } finally {
+      document.getElementById('loader').style.display = 'none';
+    }
+  }
+
+  // 2. Create card DOM
+  function createCardElement(item) {
+    const div = document.createElement('div');
+    div.className = 'card';
+
+    let mediaHtml = '';
+    const isVideo = item.mediaType === 'video';
+
+    if (isVideo) {
+      mediaHtml = `<video src="${item.mediaUrl}" class="card-media" preload="metadata"></video>`;
+    } else {
+      mediaHtml = `<img src="${item.mediaUrl}" class="card-media" alt="cover" onerror="this.src='https://via.placeholder.com/300?text=No+Image'">`;
     }
 
-    // 2. 创建卡片 DOM
-    function createCardElement(item) {
-        const div = document.createElement('div');
-        div.className = 'card';
-        
-        let mediaHtml = '';
-        const isVideo = item.mediaType === 'video';
-        
-        if (isVideo) {
-            mediaHtml = `<video src="${item.mediaUrl}" class="card-media" preload="metadata"></video>`;
+    div.innerHTML = `
+      <div onclick="viewDetail('${item.id}')">
+        ${mediaHtml}
+        <div class="card-body">
+          <h3 class="card-title">${item.header || 'Untitled'}</h3>
+          <p class="card-text">${item.text || 'No content'}</p>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <button class="btn-like" onclick="addLike('${item.id}', event)">
+          👍 <span id="like-count-${item.id}">${item.likes || 0}</span>
+        </button>
+
+        <div style="margin-left:auto;">
+          <button class="btn-edit" onclick="openEditModal('${item.id}', event)">Edit</button>
+          <button class="btn-danger" onclick="deletePost('${item.id}', event)">Delete</button>
+        </div>
+      </div>
+    `;
+    return div;
+  }
+
+  // 3. View details (supports video playback + comments)
+  async function viewDetail(id) {
+    try {
+      const res = await fetch(`${ENDPOINTS.GET_ONE}&id=${id}`);
+      const item = await res.json();
+
+      const contentDiv = document.getElementById('detail-content');
+      let mediaTag = '';
+
+      if (item.mediaType === 'video') {
+        mediaTag = `<video src="${item.mediaUrl}" class="detail-media" controls autoplay></video>`;
+      } else {
+        mediaTag = `<img src="${item.mediaUrl}" class="detail-media">`;
+      }
+
+      let html = `
+        ${mediaTag}
+        <h2>${item.header}</h2>
+        <p style="white-space: pre-wrap;">${item.text}</p>
+        <div style="display:flex; justify-content:space-between; align-items:center; color:#888; margin-top:10px;">
+          <small>Published at: ${item.createdAt || 'Unknown'}</small>
+          <strong>👍 ${item.likes || 0}</strong>
+        </div>
+
+        <div class="comments-section">
+          <div class="comments-header">Comments (${item.comments ? item.comments.length : 0})</div>
+
+          <div id="comments-list">
+            ${renderComments(item.comments, item.id)}
+          </div>
+
+          <div class="add-comment-box">
+            <div style="font-weight:bold; margin-bottom:10px;">Add a new comment</div>
+            <div class="add-comment-row">
+              <input type="text" id="new-comment-name" placeholder="Your name" style="flex:1;">
+              <input type="text" id="new-comment-text" placeholder="Write something..." style="flex:3;">
+            </div>
+            <button class="btn-submit" onclick="submitComment('${item.id}')" style="margin-top:0;">Submit Comment</button>
+          </div>
+        </div>
+      `;
+
+      contentDiv.innerHTML = html;
+      document.getElementById('detail-modal').style.display = 'flex';
+    } catch (err) {
+      console.error(err);
+      alert("Failed to fetch details");
+    }
+  }
+
+  // Helper: render comment list HTML
+  function renderComments(comments, postId) {
+    if (!comments || comments.length === 0) {
+      return '<div style="color:#888; padding:10px 0;">No comments yet. Be the first to comment!</div>';
+    }
+
+    return comments.map(c => `
+      <div class="comment-item">
+        <div class="comment-meta">
+          <span style="font-weight:bold;">${c.commentName || 'Anonymous'}</span>
+          <span>
+            ${c.commentTime ? new Date(c.commentTime).toLocaleString() : ''}
+            <button class="btn-danger btn-small" onclick="deleteComment('${postId}', '${c.commentId}')">Delete</button>
+          </span>
+        </div>
+        <div class="comment-text">${c.commentText || ''}</div>
+      </div>
+    `).join('');
+  }
+
+  // Like (Optimistic UI)
+  async function addLike(id, event) {
+    if(event) event.stopPropagation();
+
+    const countSpan = document.getElementById(`like-count-${id}`);
+    let currentLikes = parseInt(countSpan.innerText) || 0;
+
+    // Optimistic update
+    countSpan.innerText = currentLikes + 1;
+
+    let baseUrl = ENDPOINTS.ADD_LIKE_BASE;
+    if (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1);
+    const url = `${baseUrl}/${id}`;
+
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        countSpan.innerText = data.newLikes;
+      } else {
+        countSpan.innerText = currentLikes;
+        alert("Like failed, please try again");
+      }
+    } catch (err) {
+      console.error(err);
+      countSpan.innerText = currentLikes;
+    }
+  }
+
+  // Submit comment
+  async function submitComment(postId) {
+    const nameInput = document.getElementById('new-comment-name');
+    const textInput = document.getElementById('new-comment-text');
+
+    const name = nameInput.value.trim();
+    const text = textInput.value.trim();
+
+    if (!name || !text) {
+      alert("Please enter your name and comment!");
+      return;
+    }
+
+    let baseUrl = ENDPOINTS.ADD_COMMENT_BASE;
+    if (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1);
+    const url = `${baseUrl}/${postId}`;
+
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ commentName: name, commentText: text })
+      });
+
+      if (res.ok) {
+        viewDetail(postId);
+      } else {
+        alert("Failed to submit comment. Please check the backend service.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Comment request error: " + err.message);
+    }
+  }
+
+  // Delete comment
+  async function deleteComment(postId, commentId) {
+    if (!confirm("Are you sure you want to delete this comment?")) return;
+
+    let baseUrl = ENDPOINTS.DEL_COMMENT_BASE;
+    if (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1);
+    const url = `${baseUrl}/${postId}`;
+
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ commentId: commentId })
+      });
+
+      if (res.ok) {
+        viewDetail(postId);
+      } else {
+        if (res.status === 404) {
+          alert("The comment may have already been deleted");
+          viewDetail(postId);
         } else {
-            mediaHtml = `<img src="${item.mediaUrl}" class="card-media" alt="cover" onerror="this.src='https://via.placeholder.com/300?text=No+Image'">`;
+          alert("Delete failed");
         }
-
-        // 注意：这里 onclick="viewDetail" 会触发详情，
-        // 下面点赞和删除按钮使用了 event.stopPropagation() 防止冒泡打开详情页
-        div.innerHTML = `
-            <div onclick="viewDetail('${item.id}')">
-                ${mediaHtml}
-                <div class="card-body">
-                    <h3 class="card-title">${item.header || '无标题'}</h3>
-                    <p class="card-text">${item.text || '无内容'}</p>
-                </div>
-            </div>
-            <div class="card-footer">
-                <button class="btn-like" onclick="addLike('${item.id}', event)">
-                    👍 <span id="like-count-${item.id}">${item.likes || 0}</span>
-                </button>
-
-                <div style="margin-left:auto;">
-                    <button class="btn-edit" onclick="openEditModal('${item.id}', event)">编辑</button>
-                    <button class="btn-danger" onclick="deletePost('${item.id}', event)">删除</button>
-                </div>
-            </div>
-        `;
-        return div;
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Request error: " + err.message);
     }
+  }
 
-    // 3. 查看详情 (支持视频播放 + 评论功能)
-    async function viewDetail(id) {
-        try {
-            const res = await fetch(`${ENDPOINTS.GET_ONE}&id=${id}`);
-            const item = await res.json();
-            
-            const contentDiv = document.getElementById('detail-content');
-            let mediaTag = '';
-            
-            if (item.mediaType === 'video') {
-                mediaTag = `<video src="${item.mediaUrl}" class="detail-media" controls autoplay></video>`;
-            } else {
-                mediaTag = `<img src="${item.mediaUrl}" class="detail-media">`;
-            }
+  // Delete post
+  async function deletePost(id, event) {
+    if(event) event.stopPropagation();
 
-            // 渲染基本内容
-            let html = `
-                ${mediaTag}
-                <h2>${item.header}</h2>
-                <p style="white-space: pre-wrap;">${item.text}</p>
-                <div style="display:flex; justify-content:space-between; align-items:center; color:#888; margin-top:10px;">
-                    <small>发布时间: ${item.createdAt || '未知'}</small>
-                    <strong>👍 ${item.likes || 0}</strong>
-                </div>
-                
-                <div class="comments-section">
-                    <div class="comments-header">评论区 (${item.comments ? item.comments.length : 0})</div>
-                    
-                    <div id="comments-list">
-                        ${renderComments(item.comments, item.id)}
-                    </div>
-
-                    <div class="add-comment-box">
-                        <div style="font-weight:bold; margin-bottom:10px;">发表新评论</div>
-                        <div class="add-comment-row">
-                            <input type="text" id="new-comment-name" placeholder="你的昵称" style="flex:1;">
-                            <input type="text" id="new-comment-text" placeholder="说点什么..." style="flex:3;">
-                        </div>
-                        <button class="btn-submit" onclick="submitComment('${item.id}')" style="margin-top:0;">发送评论</button>
-                    </div>
-                </div>
-                `;
-
-            contentDiv.innerHTML = html;
-            document.getElementById('detail-modal').style.display = 'flex';
-        } catch (err) {
-            console.error(err);
-            alert("获取详情失败");
-        }
+    if (!confirm("Are you sure you want to delete this post?")) return;
+    try {
+      const res = await fetch(ENDPOINTS.DEL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: id })
+      });
+      if (res.ok) {
+        alert("Deleted successfully");
+        loadPosts();
+      } else {
+        throw new Error("Delete failed");
+      }
+    } catch (err) {
+      alert(err.message);
     }
+  }
 
-    // 辅助：渲染评论列表 HTML
-    function renderComments(comments, postId) {
-        if (!comments || comments.length === 0) {
-            return '<div style="color:#888; padding:10px 0;">暂无评论，快来抢沙发吧~</div>';
-        }
+  // Upload file
+  function uploadFileToBlob(file) {
+    return new Promise((resolve, reject) => {
+      if (!ENDPOINTS.UPLOAD || ENDPOINTS.UPLOAD.includes("你的_UPLOAD")) {
+        reject(new Error("Please configure the UPLOAD API URL!"));
+        return;
+      }
 
-        return comments.map(c => `
-            <div class="comment-item">
-                <div class="comment-meta">
-                    <span style="font-weight:bold;">${c.commentName || '匿名'}</span>
-                    <span>
-                        ${c.commentTime ? new Date(c.commentTime).toLocaleString() : ''}
-                        <button class="btn-danger btn-small" onclick="deleteComment('${postId}', '${c.commentId}')">删除</button>
-                    </span>
-                </div>
-                <div class="comment-text">${c.commentText || ''}</div>
-            </div>
-        `).join('');
-    }
-
-    // ================= 功能函数区 =================
-
-    // 点赞 (Optimistic UI)
-    async function addLike(id, event) {
-        // 阻止冒泡，防止点击点赞时打开详情页
-        if(event) event.stopPropagation();
-
-        const countSpan = document.getElementById(`like-count-${id}`);
-        let currentLikes = parseInt(countSpan.innerText) || 0;
-        
-        // 乐观更新：界面先 +1
-        countSpan.innerText = currentLikes + 1;
-
-        // 处理 URL
-        let baseUrl = ENDPOINTS.ADD_LIKE_BASE;
-        if (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1);
-        const url = `${baseUrl}/${id}`;
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = async () => {
+        const base64Content = reader.result.split(',')[1];
+        const folderName = file.type.startsWith('video') ? 'videos' : 'images';
+        const fileName = Date.now() + "_" + file.name;
 
         try {
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                countSpan.innerText = data.newLikes; // 用真实数据覆盖
-            } else {
-                countSpan.innerText = currentLikes; // 失败回滚
-                alert("点赞失败，请重试");
-            }
-        } catch (err) {
-            console.error(err);
-            countSpan.innerText = currentLikes; // 失败回滚
-        }
-    }
-
-    // 提交评论
-    async function submitComment(postId) {
-        const nameInput = document.getElementById('new-comment-name');
-        const textInput = document.getElementById('new-comment-text');
-        
-        const name = nameInput.value.trim();
-        const text = textInput.value.trim();
-
-        if (!name || !text) {
-            alert("请填写昵称和评论内容！");
-            return;
-        }
-
-        let baseUrl = ENDPOINTS.ADD_COMMENT_BASE;
-        if (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1);
-        const url = `${baseUrl}/${postId}`;
-
-        try {
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    commentName: name,
-                    commentText: text
-                })
-            });
-
-            if (res.ok) {
-                viewDetail(postId); // 刷新详情页
-            } else {
-                alert("评论失败，请检查后端服务。");
-            }
-        } catch (err) {
-            console.error(err);
-            alert("评论请求出错: " + err.message);
-        }
-    }
-
-    // 删除评论
-    async function deleteComment(postId, commentId) {
-        if (!confirm("确定要删除这条评论吗？")) return;
-
-        let baseUrl = ENDPOINTS.DEL_COMMENT_BASE;
-        if (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1);
-        const url = `${baseUrl}/${postId}`;
-
-        try {
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    commentId: commentId
-                })
-            });
-
-            if (res.ok) {
-                viewDetail(postId); // 刷新
-            } else {
-                if (res.status === 404) {
-                    alert("评论可能已被删除");
-                    viewDetail(postId); 
-                } else {
-                    alert("删除失败");
-                }
-            }
-        } catch (err) {
-            console.error(err);
-            alert("请求出错: " + err.message);
-        }
-    }
-
-    // 删除帖子
-    async function deletePost(id, event) {
-        if(event) event.stopPropagation(); // 阻止冒泡
-        
-        if (!confirm("确定要删除这条内容吗？")) return;
-        try {
-            const res = await fetch(ENDPOINTS.DEL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: id })
-            });
-            if (res.ok) {
-                alert("删除成功");
-                loadPosts();
-            } else {
-                throw new Error("删除失败");
-            }
-        } catch (err) {
-            alert(err.message);
-        }
-    }
-
-    // 上传文件
-    function uploadFileToBlob(file) {
-        return new Promise((resolve, reject) => {
-            if (!ENDPOINTS.UPLOAD || ENDPOINTS.UPLOAD.includes("你的_UPLOAD")) {
-                reject(new Error("请配置 UPLOAD API URL！"));
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = async () => {
-                const base64Content = reader.result.split(',')[1];
-                const folderName = file.type.startsWith('video') ? 'videos' : 'images';
-                const fileName = Date.now() + "_" + file.name;
-
-                try {
-                    const res = await fetch(ENDPOINTS.UPLOAD, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            fileName: fileName,
-                            fileContent: base64Content,
-                            folder: folderName
-                        })
-                    });
-                    if (res.ok) {
-                        const data = await res.json();
-                        resolve(data.url);
-                    } else {
-                        reject(new Error("Upload API Error"));
-                    }
-                } catch (e) { reject(e); }
-            };
-            reader.onerror = error => reject(error);
-        });
-    }
-
-    // ================= 表单与模态框逻辑 =================
-
-    document.getElementById('post-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const submitBtn = document.getElementById('submit-btn');
-        submitBtn.disabled = true;
-        submitBtn.innerText = "处理中...";
-
-        const id = document.getElementById('post-id').value; 
-        const header = document.getElementById('input-header').value;
-        const text = document.getElementById('input-text').value;
-        const fileInput = document.getElementById('file-input');
-        const file = fileInput.files[0];
-        
-        let mediaUrl = document.getElementById('current-media-url').value;
-        let mediaType = "image"; 
-
-        try {
-            if (file) {
-                submitBtn.innerText = "正在上传文件...";
-                mediaType = file.type.startsWith('video') ? 'video' : 'image';
-                mediaUrl = await uploadFileToBlob(file);
-            }
-
-            const payload = {
-                header: header,
-                text: text,
-                mediaUrl: mediaUrl,
-                mediaType: mediaType
-            };
-
-            if (id) {
-                submitBtn.innerText = "正在保存修改...";
-                payload.id = id; 
-                const res = await fetch(ENDPOINTS.UPDATE, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                if (!res.ok) throw new Error("更新失败");
-                alert("更新成功！");
-            } else {
-                submitBtn.innerText = "正在发布...";
-                const res = await fetch(ENDPOINTS.ADD, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                if (!res.ok) throw new Error("发布失败");
-                alert("发布成功！");
-            }
-
-            closeFormModal();
-            loadPosts(); 
-
-        } catch (err) {
-            console.error(err);
-            alert("操作失败: " + err.message);
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerText = "提交发布";
-        }
+          const res = await fetch(ENDPOINTS.UPLOAD, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fileName: fileName,
+              fileContent: base64Content,
+              folder: folderName
+            })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            resolve(data.url);
+          } else {
+            reject(new Error("Upload API Error"));
+          }
+        } catch (e) { reject(e); }
+      };
+      reader.onerror = error => reject(error);
     });
+  }
 
-    function openFormModal() {
-        document.getElementById('post-form').reset();
-        document.getElementById('post-id').value = '';
-        document.getElementById('current-media-url').value = '';
-        document.getElementById('modal-title').innerText = "发布新内容";
-        document.getElementById('file-status').innerText = "请选择文件";
-        document.getElementById('form-modal').style.display = 'flex';
+  // ================= Form & Modal Logic =================
+  document.getElementById('post-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const submitBtn = document.getElementById('submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.innerText = "Processing...";
+
+    const id = document.getElementById('post-id').value;
+    const header = document.getElementById('input-header').value;
+    const text = document.getElementById('input-text').value;
+    const fileInput = document.getElementById('file-input');
+    const file = fileInput.files[0];
+
+    let mediaUrl = document.getElementById('current-media-url').value;
+    let mediaType = "image";
+
+    try {
+      if (file) {
+        submitBtn.innerText = "Uploading file...";
+        mediaType = file.type.startsWith('video') ? 'video' : 'image';
+        mediaUrl = await uploadFileToBlob(file);
+      }
+
+      const payload = { header, text, mediaUrl, mediaType };
+
+      if (id) {
+        submitBtn.innerText = "Saving changes...";
+        payload.id = id;
+
+        const res = await fetch(ENDPOINTS.UPDATE, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error("Update failed");
+        alert("Updated successfully!");
+      } else {
+        submitBtn.innerText = "Publishing...";
+
+        const res = await fetch(ENDPOINTS.ADD, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error("Publish failed");
+        alert("Published successfully!");
+      }
+
+      closeFormModal();
+      loadPosts();
+
+    } catch (err) {
+      console.error(err);
+      alert("Operation failed: " + err.message);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerText = "Submit";
     }
+  });
 
-    async function openEditModal(id, event) {
-        if(event) event.stopPropagation(); // 阻止冒泡
-        try {
-            const res = await fetch(`${ENDPOINTS.GET_ONE}&id=${id}`);
-            const item = await res.json();
+  function openFormModal() {
+    document.getElementById('post-form').reset();
+    document.getElementById('post-id').value = '';
+    document.getElementById('current-media-url').value = '';
+    document.getElementById('modal-title').innerText = "Create New Post";
+    document.getElementById('file-status').innerText = "Please select a file";
+    document.getElementById('form-modal').style.display = 'flex';
+  }
 
-            document.getElementById('post-id').value = item.id;
-            document.getElementById('input-header').value = item.header;
-            document.getElementById('input-text').value = item.text;
-            document.getElementById('current-media-url').value = item.mediaUrl;
-            
-            document.getElementById('modal-title').innerText = "编辑内容";
-            document.getElementById('file-status').innerText = "当前已有媒体文件。如不修改，请勿选择新文件。";
-            
-            document.getElementById('form-modal').style.display = 'flex';
-        } catch (e) {
-            alert("无法加载编辑数据");
-        }
+  async function openEditModal(id, event) {
+    if(event) event.stopPropagation();
+    try {
+      const res = await fetch(`${ENDPOINTS.GET_ONE}&id=${id}`);
+      const item = await res.json();
+
+      document.getElementById('post-id').value = item.id;
+      document.getElementById('input-header').value = item.header;
+      document.getElementById('input-text').value = item.text;
+      document.getElementById('current-media-url').value = item.mediaUrl;
+
+      document.getElementById('modal-title').innerText = "Edit Post";
+      document.getElementById('file-status').innerText = "An existing media file is attached. Do not select a new file if you do not want to replace it.";
+
+      document.getElementById('form-modal').style.display = 'flex';
+    } catch (e) {
+      alert("Unable to load data for editing");
     }
+  }
 
-    function closeFormModal() {
-        document.getElementById('form-modal').style.display = 'none';
+  function closeFormModal() {
+    document.getElementById('form-modal').style.display = 'none';
+  }
+
+  function closeDetailModal() {
+    document.getElementById('detail-modal').style.display = 'none';
+    document.getElementById('detail-content').innerHTML = '';
+  }
+
+  window.onclick = function(event) {
+    if (event.target.className === 'modal-overlay') {
+      event.target.style.display = "none";
+      if (event.target.id === 'detail-modal') {
+        document.getElementById('detail-content').innerHTML = '';
+      }
     }
+  }
 
-    function closeDetailModal() {
-        document.getElementById('detail-modal').style.display = 'none';
-        document.getElementById('detail-content').innerHTML = ''; 
-    }
-
-    window.onclick = function(event) {
-        if (event.target.className === 'modal-overlay') {
-            event.target.style.display = "none";
-            if (event.target.id === 'detail-modal') {
-                document.getElementById('detail-content').innerHTML = '';
-            }
-        }
-    }
-
-    // 启动
-    loadPosts();
-
+  // Start
+  loadPosts();
 </script>
+
 </body>
 </html>
